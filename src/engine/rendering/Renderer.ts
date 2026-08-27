@@ -11,52 +11,55 @@ export class Renderer {
     this.context = context;
   }
 
-  resize(width: number, height: number) {
-    const dpr = window.devicePixelRatio || 1;
-
-    this.canvas.width = Math.floor(width * dpr);
-    this.canvas.height = Math.floor(height * dpr);
+  resize(
+    width: number,
+    height: number,
+    devicePixelRatio: number
+  ) {
+    this.canvas.width = Math.floor(width * devicePixelRatio);
+    this.canvas.height = Math.floor(height * devicePixelRatio);
 
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
 
-    this.context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.context.setTransform(
+      devicePixelRatio,
+      0,
+      0,
+      devicePixelRatio,
+      0,
+      0
+    );
   }
 
-  render(elapsedTime: number, deltaTime: number) {
+  clear(color = "#000000") {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
 
-    // Clear
-    this.context.clearRect(0, 0, width, height);
-
-    // Background
-    this.context.fillStyle = "#111827";
+    this.context.fillStyle = color;
     this.context.fillRect(0, 0, width, height);
+  }
 
-    // Animated test object
-    const x = width / 2 + Math.sin(elapsedTime / 500) * 100;
-    const y = height / 2;
-
+  drawCircle(
+    x: number,
+    y: number,
+    radius: number,
+    color: string
+  ) {
     this.context.beginPath();
-    this.context.arc(x, y, 15, 0, Math.PI * 2);
-    this.context.fillStyle = "#22c55e";
+    this.context.arc(x, y, radius, 0, Math.PI * 2);
+    this.context.fillStyle = color;
     this.context.fill();
+  }
 
-    // Debug text
-    this.context.fillStyle = "#ffffff";
+  drawText(
+    text: string,
+    x: number,
+    y: number,
+    color = "#ffffff"
+  ) {
+    this.context.fillStyle = color;
     this.context.font = "16px Arial";
-
-    this.context.fillText("ENGINE: RUNNING", 20, 35);
-
-    const fps =
-      deltaTime > 0 ? Math.round(1000 / deltaTime) : 0;
-
-    this.context.fillText(`FPS: ${fps}`, 20, 60);
-    this.context.fillText(
-      `Delta: ${deltaTime.toFixed(2)}ms`,
-      20,
-      85
-    );
+    this.context.fillText(text, x, y);
   }
 }

@@ -6,12 +6,18 @@ export class Time {
   update(currentTime: number) {
     if (this.lastTime === 0) {
       this.lastTime = currentTime;
+      this.deltaTime = 0;
       return;
     }
 
     this.deltaTime = currentTime - this.lastTime;
     this.elapsedTime += this.deltaTime;
     this.lastTime = currentTime;
+  }
+
+  resetFrameTime() {
+    this.lastTime = 0;
+    this.deltaTime = 0;
   }
 
   reset() {

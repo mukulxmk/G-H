@@ -1,37 +1,48 @@
 import type { EngineStatus } from "../types";
 import { Renderer } from "../rendering/Renderer";
 import { GameLoop } from "./GameLoop";
+import { Viewport } from "./Viewport";
+import { Scene } from "../../game/scenes/Scene";
 
 export class Engine {
   private readonly renderer: Renderer;
   private readonly gameLoop: GameLoop;
+  private readonly viewport = new Viewport();
+  private currentScene: Scene | null = null;
 
   private status: EngineStatus = "idle";
+  private destroyed = false;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new Renderer(canvas);
 
     this.gameLoop = new GameLoop({
-      update: () => {
-        // Game/simulation updates will go here later.
-      },
-
-      render: () => {
-        this.renderer.render(
-          this.gameLoop.getElapsedTime(),
-          this.gameLoop.getDeltaTime()
-        );
-      },
+      update: this.update,
+      render: this.render,
     });
   }
 
+  setScene(scene: Scene) {
+    if (this.destroyed) return;
+
+    if (this.currentScene) {
+      this.currentScene.destroy();
+    }
+
+    this.currentScene = scene;
+    this.currentScene.initialize();
+  }
+
   initialize() {
-    this.resize();
+    if (this.destroyed) {
+      throw new Error("Cannot initialize a destroyed engine");
+    }
 
     this.status = "idle";
   }
 
   start() {
+    if (this.destroyed) return;
     if (this.status === "running") return;
 
     this.status = "running";
@@ -39,6 +50,7 @@ export class Engine {
   }
 
   pause() {
+    if (this.destroyed) return;
     if (this.status !== "running") return;
 
     this.gameLoop.pause();
@@ -46,22 +58,57 @@ export class Engine {
   }
 
   resume() {
+    if (this.destroyed) return;
     if (this.status !== "paused") return;
 
     this.status = "running";
-    this.gameLoop.start();
+    this.gameLoop.resume();
   }
 
   stop() {
+    if (this.destroyed) return;
+
     this.gameLoop.stop();
     this.status = "stopped";
   }
 
-  resize() {
-    const { width, height } =
-      this.canvas.getBoundingClientRect();
+  resize(width: number, height: number) {
+    if (this.destroyed) return;
 
-    this.renderer.resize(width, height);
+    this.viewport.resize(width, height);
+
+    this.renderer.resize(
+      this.viewport.getWidth(),
+      this.viewport.getHeight(),
+      this.viewport.getDevicePixelRatio()
+    );
+
+    // Changing canvas dimensions clears its drawing buffer.
+    // Redraw immediately, even if the game loop is paused/stopped.
+    this.render();
+  }
+
+  update = (deltaTime: number) => {
+    if (this.destroyed) return;
+
+    this.currentScene?.update(deltaTime);
+  };
+
+  render = () => {
+    if (this.destroyed) return;
+
+    this.currentScene?.render(this.renderer);
+  };
+
+  destroy() {
+    if (this.destroyed) return;
+
+    this.currentScene?.destroy();
+    this.currentScene = null;
+
+    this.stop();
+
+    this.destroyed = true;
   }
 
   getStatus() {
