@@ -2,12 +2,18 @@ import type { EngineStatus } from "../types";
 import { Renderer } from "../rendering/Renderer";
 import { GameLoop } from "./GameLoop";
 import { Viewport } from "./Viewport";
-import { Scene } from "../../game/scenes/Scene";
+import { Scene } from "../scenes/Scene";
+import { Input } from "../input/Input";
+import { Camera } from "../camera/Camera";
+import { EventBus } from "../events/EventBus";
 
 export class Engine {
   private readonly renderer: Renderer;
   private readonly gameLoop: GameLoop;
   private readonly viewport = new Viewport();
+  private readonly input =  new Input();
+  private readonly camera = new Camera();
+  private readonly eventBus = new EventBus();
   private currentScene: Scene | null = null;
 
   private status: EngineStatus = "idle";
@@ -25,18 +31,21 @@ export class Engine {
   setScene(scene: Scene) {
     if (this.destroyed) return;
 
-    if (this.currentScene) {
-      this.currentScene.destroy();
-    }
+    this.currentScene?.destroy();
 
     this.currentScene = scene;
     this.currentScene.initialize();
+
+    this.render();
   }
 
   initialize() {
     if (this.destroyed) {
       throw new Error("Cannot initialize a destroyed engine");
     }
+
+    this.input.initialize();
+    this.renderer.setCamera(this.camera);
 
     this.status = "idle";
   }
@@ -83,6 +92,8 @@ export class Engine {
       this.viewport.getDevicePixelRatio()
     );
 
+    this.camera.resize(width, height)
+
     // Changing canvas dimensions clears its drawing buffer.
     // Redraw immediately, even if the game loop is paused/stopped.
     this.render();
@@ -97,6 +108,8 @@ export class Engine {
   render = () => {
     if (this.destroyed) return;
 
+    this.renderer.clear("#888888");
+
     this.currentScene?.render(this.renderer);
   };
 
@@ -105,6 +118,8 @@ export class Engine {
 
     this.currentScene?.destroy();
     this.currentScene = null;
+    this.input.destroy();
+    this.eventBus.clear();
 
     this.stop();
 
@@ -114,4 +129,16 @@ export class Engine {
   getStatus() {
     return this.status;
   }
+
+  getInput() {
+    return this.input;
+  }
+
+  getCamera() { 
+    return this.camera;
+  }
+
+  getEventBus() {
+  return this.eventBus;
+}
 }

@@ -1,4 +1,4 @@
-import type { Entity } from "./Entity";
+import type { Entity } from "../../engine/entity/Entity";
 import type { Renderer } from "@/src/engine/rendering/Renderer";
 
 export class EntityManager {

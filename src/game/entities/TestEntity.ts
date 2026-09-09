@@ -1,38 +1,73 @@
-import type { Entity } from "./Entity";
 import type { Renderer } from "@/src/engine/rendering/Renderer";
+import type { Entity } from "@/src/engine/entity/Entity";
+import { Input } from "@/src/engine/input/Input";
+import { Transform } from "@/src/engine/core/Transform";
+import { TestComponent } from "../components/TestComponent";
 
 export class TestEntity implements Entity {
-  private direction = 1;
+  // private x: number;
+  // private y: number;
+  readonly transform = new Transform();
+  readonly testComponent = new TestComponent();
+
+  private readonly speed: number;
+  private readonly input: Input;
+  private readonly color: string;
 
   constructor(
-    private x: number,
-    private readonly y: number,
-    private readonly speed: number
-  ) {}
-
-  initialize() {
-    console.log("TestEntity initialized");
+    x: number,
+    y: number,
+    speed: number,
+    input: Input,
+    color?: string
+  ) {
+    this.transform.x = x;
+    this.transform.y = y;
+    this.speed = speed;
+    this.input = input;
+    this.color = color || "#8d2929";
   }
 
+  initialize() {}
+
   update(deltaTime: number) {
-    const deltaSeconds = deltaTime / 1000;
+    let directionX = 0;
+    let directionY = 0;
 
-    this.x += this.speed * this.direction * deltaSeconds;
-
-    if (this.x > 500) {
-      this.direction = -1;
+    if (this.input.isKeyDown("w")) {
+      directionY -= 1;
     }
 
-    if (this.x < 100) {
-      this.direction = 1;
+    if (this.input.isKeyDown("s")) {
+      directionY += 1;
     }
+
+    if (this.input.isKeyDown("a")) {
+      directionX -= 1;
+    }
+
+    if (this.input.isKeyDown("d")) {
+      directionX += 1;
+    }
+
+    this.transform.x += directionX * this.speed * deltaTime / 1000;
+    this.transform.y += directionY * this.speed * deltaTime / 1000;
   }
 
   render(renderer: Renderer) {
-    renderer.drawCircle(this.x, this.y, 20, "#22c55e");
+    renderer.drawCircle(
+      this.transform.x,
+      this.transform.y,
+      20,
+      this.color
+    );
   }
 
   destroy() {
-    console.log("TestEntity destroyed");
+    console.log("Entity Destroyed.")
+  }
+
+  getPosition() {
+    return this.transform.getPosition();
   }
 }

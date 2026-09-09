@@ -1,11 +1,15 @@
 import type { World } from "./World";
 import type { Renderer } from "@/src/engine/rendering/Renderer";
-import { EntityManager } from "@/src/game/entities/EntityManager";
+import { EntityManager } from "@/src/engine/entity/EntityManager";
 import { TestEntity } from "@/src/game/entities/TestEntity";
-import { DebugStats } from "@/src/utils/DebugStats";
+import { Input } from "@/src/engine/input/Input";
+import { Camera } from "@/src/engine/camera/Camera";
 
 export class TestWorld implements World {
-  private readonly entities = new EntityManager();
+  private readonly entityManager = new EntityManager();
+  private testEntity: TestEntity | null = null;
+
+  constructor(private readonly input: Input, private readonly camera: Camera) {}
 
   private elapsedTime = 0;
   private removedEntity = false;
@@ -13,56 +17,34 @@ export class TestWorld implements World {
   private entityToRemove: TestEntity | null = null;
 
   initialize() {
-    console.log("TestWorld initialized");
+    console.log("First Test World Initialized")
+    this.testEntity = new TestEntity(
+      200,
+      200,
+      200,
+      this.input,
+      "#ff0000"
+    );
 
-    const entityA = new TestEntity(100, 150, 100);
-    const entityB = new TestEntity(200, 250, 150);
-    const entityC = new TestEntity(300, 350, 200);
-
-    this.entityToRemove = entityB;
-
-    this.entities.add(entityA);
-    this.entities.add(entityB);
-    this.entities.add(entityC);
+    this.testEntity.testComponent?.initialize();
+    this.entityManager.add(this.testEntity);
   }
 
   update(deltaTime: number) {
-    this.elapsedTime += deltaTime;
-
-    this.entities.update(deltaTime);
-
-    if (
-      !this.removedEntity &&
-      this.elapsedTime >= 5000 &&
-      this.entityToRemove
-    ) {
-      this.entities.remove(this.entityToRemove);
-
-      this.removedEntity = true;
-    }
+    this.entityManager.update(deltaTime);
+    this.testEntity?.testComponent?.update(deltaTime);
+    console.log(this.testEntity?.getPosition(), "first");
+    
+    this.camera.follow(this.testEntity?.getPosition());
   }
 
   render(renderer: Renderer) {
-    renderer.clear("#111827");
-
-    renderer.drawText(`ELAPSED TIME: ${DebugStats.elapsed("hh:mm:ss")}`, 20, 35);
-    renderer.drawText(`DELTA TIME: ${DebugStats.delta()}`, 20, 55);
-    renderer.drawText(`FPS: ${DebugStats.fps()}`, 20, 75);
-
-    renderer.drawText(
-      this.removedEntity
-        ? "ENTITY B REMOVED"
-        : "3 ENTITIES RUNNING",
-      20,
-      115
-    );
-
-    this.entities.render(renderer);
+    this.entityManager.render(renderer);
   }
 
   destroy() {
-    this.entities.destroy();
-
-    console.log("TestWorld destroyed");
+    this.testEntity?.testComponent?.destroy()
+    this.entityManager.destroy();
   }
+
 }

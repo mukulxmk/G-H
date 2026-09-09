@@ -1,12 +1,14 @@
 import type { EngineCallbacks } from "../types";
 import { Time } from "./Time";
 import { DebugStats } from "@/src/utils/DebugStats";
+import { Input } from "../input/Input";
 export class GameLoop {
   private animationFrameId: number | null = null;
   private running = false;
   private paused = false;
 
   private readonly time = new Time();
+  private readonly input = new Input();
   // private readonly debugStats = new DebugStats();
 
   constructor(private readonly callbacks: EngineCallbacks) {}
@@ -18,6 +20,7 @@ export class GameLoop {
     this.paused = false;
 
     this.time.reset();
+    this.input.initialize();
 
     this.tick();
   }
@@ -77,6 +80,10 @@ export class GameLoop {
   //   return this.debugStats();
   // }
 
+  getInput() { 
+    return this.input;
+  }
+
   private tick = (currentTime = performance.now()) => {
     if (!this.running) return;
 
@@ -89,7 +96,8 @@ export class GameLoop {
 
     this.callbacks.update(this.time.getDeltaTime());
     this.callbacks.render();
-    this
+
+    this.callbacks.afterFrame?.();
 
     this.animationFrameId = requestAnimationFrame(this.tick);
   };

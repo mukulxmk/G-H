@@ -1,6 +1,6 @@
-import type { Renderer } from "@/src/engine/rendering/Renderer";
+import { Renderer } from "../rendering/Renderer";
 
-export interface Entity {
+export interface Scene {
   initialize(): void;
   update(deltaTime: number): void;
   render(renderer: Renderer): void;

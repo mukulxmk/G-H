@@ -1,4 +1,4 @@
-import type { Scene } from "./Scene";
+import type { Scene } from "../../engine/scenes/Scene";
 import type { Renderer } from "@/src/engine/rendering/Renderer";
 import type { World } from "../worlds/World";
 

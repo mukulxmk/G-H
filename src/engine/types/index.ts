@@ -1,6 +1,7 @@
 export interface EngineCallbacks {
-  update: (deltaTime: number) => void;
-  render: () => void;
+  update(deltaTime: number): void;
+  render(): void;
+  afterFrame?(): void;
 }
 
 export type EngineStatus =
