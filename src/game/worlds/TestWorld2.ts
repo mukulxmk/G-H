@@ -13,10 +13,10 @@ export class TestWorld2 {
   ) {
     this.player = new PlayerEntity({
       input,
-      x: 0,
-      y: 0,
+      x: -500,
+      y: 500,
       moveSpeed: 200,
-      radius: 24,
+      radius: 12,
     });
   }
 

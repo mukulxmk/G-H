@@ -13,6 +13,7 @@ export interface PlayerEntityOptions {
 
   bodyColor?: string;
   outlineColor?: string;
+
 }
 
 export class PlayerEntity {
@@ -42,8 +43,8 @@ export class PlayerEntity {
     this.transform = new Transform();
 
     this.transform.setPosition(
-      options.x ?? 0,
-      options.y ?? 0
+      options.x ?? 50,
+      options.y ?? 50
     );
 
     this.moveSpeed = options.moveSpeed ?? 200;
