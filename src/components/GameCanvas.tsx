@@ -11,6 +11,8 @@ import { TestWorld } from "../game/worlds/TestWorld";
 import { TestWorld2 } from "../game/worlds/TestWorld2";
 import { SecondTestWorld } from "../game/worlds/TestWorld1";
 import { Game } from "../game/Game";
+import { testWorldDefinition } from "../game/worlds/TestWorldDefinition";
+import { testWorldState } from "../game/worlds/TestWorldState";
 
 export default function GameCanvas() {
   const containerRef = useRef<HTMLDivElement | null>(null);

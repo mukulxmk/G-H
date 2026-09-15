@@ -3,6 +3,9 @@ import { TestScene } from "./scenes/TestScene";
 import { TestWorld2 } from "./worlds/TestWorld2";
 import { HomeWorld } from "./worlds/home/HomeWorld";
 import { GameScene } from "./scenes/GameScene";
+import { TestWorld } from "./worlds/TestWorld";
+import { testWorldState } from "./worlds/TestWorldState";
+import { testWorldDefinition } from "./worlds/TestWorldDefinition";
 
 export class Game {
     private initialized = false;
@@ -16,7 +19,7 @@ export class Game {
         if(this.initialized) return;
 console.log(this.engine);
 
-        const world = new HomeWorld()
+        const world = new TestWorld()
         const scene = new GameScene(world);
 
         this.engine?.setScene(scene);

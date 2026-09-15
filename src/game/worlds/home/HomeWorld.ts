@@ -28,11 +28,12 @@ export class HomeWorld implements World {
   private renderIsland(renderer: Renderer) {
     const island = homeWorldData.island;
 
-    renderer.drawRect(
-      island.x,
-      island.y,
+    renderer.drawCircle(
+      // island.x,
+      // island.y,
+      0,0,
       island.width,
-      island.height,
+      // island.height,
       "#6fa85f"
     );
   }
