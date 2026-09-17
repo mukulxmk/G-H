@@ -15,6 +15,7 @@ export class Engine {
   private readonly camera = new Camera();
   private readonly eventBus = new EventBus();
   private currentScene: Scene | null = null;
+  private applicationUpdate: ((deltaTime: number) => void) | null = null
 
   private status: EngineStatus = "idle";
   private destroyed = false;
@@ -102,6 +103,8 @@ export class Engine {
   update = (deltaTime: number) => {
     if (this.destroyed) return;
 
+    if(this.applicationUpdate) this.applicationUpdate?.(deltaTime);
+
     this.currentScene?.update(deltaTime);
   };
 
@@ -139,6 +142,14 @@ export class Engine {
   }
 
   getEventBus() {
-  return this.eventBus;
-}
+   return this.eventBus;
+  }
+
+  setApplicationUpdate(callback: (deltaTime: number) => void) {
+    if(this.destroyed) return;
+
+    console.log("APPLICATION UPDATE BRIDGE")
+
+    this.applicationUpdate = callback
+  }
 }

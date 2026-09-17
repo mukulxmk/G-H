@@ -41,6 +41,25 @@ export class Renderer {
     this.context.fillRect(0, 0, width, height);
   }
 
+  drawRect( x: number, y: number, width: number, height: number, color = "#ffffff" ) { 
+    const position = this.camera ? this.camera.worldToScreen(x, y) : { x, y }; 
+    const scale = this.camera ? this.camera.getZoom() : 1; 
+    this.context.fillStyle = color; 
+    this.context.fillRect( position.x, position.y, width * scale, height * scale ); 
+  }
+
+  drawLine( x1: number, y1: number, x2: number, y2: number, width = 1, color = "#ffffff" ) { 
+    const start = this.camera ? this.camera.worldToScreen(x1, y1) : { x: x1, y: y1 }; 
+    const end = this.camera ? this.camera.worldToScreen(x2, y2) : { x: x2, y: y2 }; 
+    const scale = this.camera ? this.camera.getZoom() : 1; 
+    this.context.strokeStyle = color; 
+    this.context.lineWidth = width * scale; 
+    this.context.beginPath(); 
+    this.context.moveTo(start.x, start.y); 
+    this.context.lineTo(end.x, end.y); 
+    this.context.stroke(); 
+  }
+
   drawCircle(x: number, y: number, radius: number, color?: string) {
       const position = this.camera ? this.camera.worldToScreen(x, y) : { x, y };
       const scaledRadius = this.camera ? radius * this.camera.getZoom() : radius;
@@ -149,4 +168,87 @@ drawEllipse(
 
   this.context.fill();
 }
+
+drawPolygon(
+  points: { x: number; y: number }[],
+  fillColor = "#ffffff",
+  strokeColor?: string,
+  strokeWidth = 1
+) {
+  if (points.length < 3) return;
+
+  const screenPoints = points.map((point) =>
+    this.camera
+      ? this.camera.worldToScreen(point.x, point.y)
+      : point
+  );
+
+  this.context.beginPath();
+
+  this.context.moveTo(
+    screenPoints[0].x,
+    screenPoints[0].y
+  );
+
+  for (let i = 1; i < screenPoints.length; i++) {
+    this.context.lineTo(
+      screenPoints[i].x,
+      screenPoints[i].y
+    );
+  }
+
+  this.context.closePath();
+
+  this.context.fillStyle = fillColor;
+  this.context.fill();
+
+  if (strokeColor) {
+    const scale = this.camera
+      ? this.camera.getZoom()
+      : 1;
+
+    this.context.strokeStyle = strokeColor;
+    this.context.lineWidth = strokeWidth * scale;
+    this.context.stroke();
+  }
+}
+
+drawPath(
+  points: { x: number; y: number }[],
+  width: number,
+  color = "#ffffff"
+) {
+  if (points.length < 2) return;
+
+  const screenPoints = points.map((point) =>
+    this.camera
+      ? this.camera.worldToScreen(point.x, point.y)
+      : point
+  );
+
+  const scale = this.camera
+    ? this.camera.getZoom()
+    : 1;
+
+  this.context.beginPath();
+
+  this.context.moveTo(
+    screenPoints[0].x,
+    screenPoints[0].y
+  );
+
+  for (let i = 1; i < screenPoints.length; i++) {
+    this.context.lineTo(
+      screenPoints[i].x,
+      screenPoints[i].y
+    );
+  }
+
+  this.context.strokeStyle = color;
+  this.context.lineWidth = width * scale;
+  this.context.lineCap = "round";
+  this.context.lineJoin = "round";
+  this.context.stroke();
+}
+
 }

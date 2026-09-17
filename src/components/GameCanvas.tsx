@@ -10,6 +10,9 @@ import { TestScene } from "../game/scenes/TestScene";
 import { TestWorld } from "../game/worlds/TestWorld";
 import { TestWorld2 } from "../game/worlds/TestWorld2";
 import { SecondTestWorld } from "../game/worlds/TestWorld1";
+import { Game } from "../game/Game";
+import { testWorldDefinition } from "../game/worlds/TestWorldDefinition";
+import { testWorldState } from "../game/worlds/TestWorldState";
 
 export default function GameCanvas() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -27,54 +30,63 @@ export default function GameCanvas() {
     if (!container || !canvas) return;
 
     const engine = new Engine(canvas);
+
+    const game = new Game(engine)
+    // 3. Register Game's update with Engine
+    engine.setApplicationUpdate(
+      (deltaTime) => game.update(deltaTime)
+    );
+
+    // 4. Initialize both
+    game.initialize();
     engineRef.current = engine;
     engine.initialize();
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "1") {
-        engine.setScene(
-          new TestScene(
-            new TestWorld(
-              engine.getInput(),
-              engine.getCamera()
-            )
-          )
-        );
-      }
+    // const handleKeyDown = (event: KeyboardEvent) => {
+    //   if (event.key === "1") {
+    //     engine.setScene(
+    //       new TestScene(
+    //         new TestWorld(
+    //           engine.getInput(),
+    //           engine.getCamera()
+    //         )
+    //       )
+    //     );
+    //   }
 
-      if (event.key === "2") {
-        engine.setScene(
-          new TestScene(
-            new TestWorld2(
-              engine.getInput(),
-              engine.getCamera()
-            )
-          )
-        );
-      }
+    //   if (event.key === "2") {
+    //     engine.setScene(
+    //       new TestScene(
+    //         new TestWorld2(
+    //           engine.getInput(),
+    //           engine.getCamera()
+    //         )
+    //       )
+    //     );
+    //   }
 
-      if (event.key === "3") {
-        engine.setScene(
-          new TestScene(
-            new SecondTestWorld()
-          )
-        );
-      }
-    };
+    //   if (event.key === "3") {
+    //     engine.setScene(
+    //       new TestScene(
+    //         new SecondTestWorld()
+    //       )
+    //     );
+    //   }
+    // };
 
-    window.addEventListener(
-      "keydown",
-      handleKeyDown
-    );
+    // window.addEventListener(
+    //   "keydown",
+    //   handleKeyDown
+    // );
 
-    engine.setScene(
-      new TestScene(
-        new TestWorld(
-          engine.getInput(),
-          engine.getCamera()
-        )
-      )
-    );
+    // engine.setScene(
+    //   new TestScene(
+    //     new TestWorld(
+    //       engine.getInput(),
+    //       engine.getCamera()
+    //     )
+    //   )
+    // );
 
     const resize = () => {
       const { width, height } =
@@ -99,12 +111,13 @@ export default function GameCanvas() {
     }, 100);
 
     return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
+      // window.removeEventListener(
+      //   "keydown",
+      //   handleKeyDown
+      // );
       window.clearInterval(statsInterval);
       resizeObserver.disconnect();
+      game.destroy();
       engine.destroy();
       engineRef.current = null;
     };
