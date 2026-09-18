@@ -7,6 +7,7 @@ import {
 import {
   getGeometryBounds,
 } from "./geometry/GeometryBounds";
+import { Bounds } from "./geometry/GeometryBounds";
 
 export class WorldSpatialIndex {
   private readonly elementsByChunk =
@@ -161,5 +162,28 @@ export class WorldSpatialIndex {
       x: Number(x),
       y: Number(y),
     };
+  }
+
+  getElementIdsForBounds(
+    bounds: Bounds
+  ): string[] {
+    const chunks =
+      getChunksForBounds(
+        bounds,
+        this.chunkSize
+      );
+
+    const elementIds = new Set<string>();
+
+    for (const coordinates of chunks) {
+      const ids =
+        this.getElementIds(coordinates);
+
+      for (const id of ids) {
+        elementIds.add(id);
+      }
+    }
+
+    return [...elementIds];
   }
 }

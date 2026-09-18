@@ -15,6 +15,9 @@ import {
   getGeometryBounds,
 } from "./geometry/GeometryBounds";
 import { Bounds } from "./geometry/GeometryBounds";
+import { Camera } from "@/src/engine/camera/Camera";
+import { getCameraWorldViewport } from "./CameraViewportAdapter";
+import { getChunksForBounds } from "./geometry/BoundsToChunks";
 
 export class WorldSpatialRuntime {
   constructor(
@@ -184,43 +187,99 @@ export class WorldSpatialRuntime {
         (a, b) => a.zIndex - b.zIndex
     );
   }
+getVisibleElements(
+  viewport: Bounds
+): WorldElement[] {
+  const elementIds =
+    this.getLoadedElementIdsForBounds(
+      viewport
+    );
 
-  getVisibleElements(
-    viewport: Bounds
-    ): WorldElement[] {
-    const elementsById =
-        new Map<string, WorldElement>();
+  const elementsById =
+    new Map<string, WorldElement>();
 
-    for (
-        const chunk of this.getLoadedChunks()
+  for (const elementId of elementIds) {
+    const element =
+      this.worldRuntime.getElement(
+        elementId
+      );
+
+    if (!element) {
+      throw new Error(
+        `Spatial index references unknown ` +
+        `world element "${elementId}".`
+      );
+    }
+
+    if (
+      !boundsIntersect(
+        getGeometryBounds(
+          element.geometry
+        ),
+        viewport
+      )
     ) {
-        const coordinates =
-        chunk.getCoordinates();
+      continue;
+    }
 
-        const elements =
-        this.getChunkElements(
-            coordinates
+    elementsById.set(
+      element.id,
+      element
+    );
+  }
+
+  return [...elementsById.values()].sort(
+    (a, b) => a.zIndex - b.zIndex
+  );
+}
+
+  getVisibleElementsFromCamera(
+    camera: Camera
+  ): WorldElement[] {
+    const viewport =
+      getCameraWorldViewport(
+        camera
+      );
+
+    return this.getVisibleElements(
+      viewport
+    );
+  }
+
+  getChunkSize() {
+    return this.chunkManager.getChunkSize();
+  }
+
+  getLoadedElementIdsForBounds(
+    viewport: Bounds
+  ): string[] {
+    const chunks =
+      getChunksForBounds(
+        viewport,
+        this.chunkManager.getChunkSize()
+      );
+
+    const elementIds = new Set<string>();
+
+    for (const coordinates of chunks) {
+      if (
+        !this.chunkManager.isChunkLoaded(
+          coordinates
+        )
+      ) {
+        continue;
+      }
+
+      const ids =
+        this.spatialIndex.getElementIds(
+          coordinates
         );
 
-        for (const element of elements) {
-        if (
-            boundsIntersect(
-            getGeometryBounds(
-                element.geometry
-            ),
-            viewport
-            )
-        ) {
-            elementsById.set(
-            element.id,
-            element
-            );
-        }
-        }
+      for (const id of ids) {
+        elementIds.add(id);
+      }
     }
 
-    return [...elementsById.values()].sort(
-        (a, b) => a.zIndex - b.zIndex
-    );
-    }
+    return [...elementIds];
+  }
 }

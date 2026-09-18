@@ -68,4 +68,12 @@ export class Camera {
         this.y,
     };
   }
+
+  getViewportWidth() {
+    return this.viewportWidth;
+  }
+
+  getViewportHeight() {
+    return this.viewportHeight;
+  }
 }

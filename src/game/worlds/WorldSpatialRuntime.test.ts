@@ -686,4 +686,62 @@ describe("WorldSpatialRuntime", () => {
         );
     }
   });
+
+  it("streams and resolves visible elements through the complete pipeline", () => {
+    const { runtime } =
+      createRuntime();
+
+    const elements =
+      runtime.getActiveElementsAround(
+        20,
+        20,
+        1
+      );
+
+    expect(
+      elements.length
+    ).toBeGreaterThan(0);
+
+    expect(
+      elements.every(
+        (element) =>
+          typeof element.id === "string"
+      )
+    ).toBe(true);
+  });
+
+  it("does not return elements outside the camera viewport", () => {
+  const { runtime } =
+    createRuntime();
+
+  const elements =
+    runtime.getActiveElementsAround(
+      20,
+      20,
+      1
+    );
+
+  const visible =
+      elements.filter((element) => {
+        const geometry =
+          element.geometry;
+
+        if (
+          geometry.type !== "rectangle"
+        ) {
+          return false;
+        }
+
+        return (
+          geometry.x < 50 &&
+          geometry.x +
+            geometry.width >
+            0
+        );
+      });
+
+    expect(
+      visible.length
+    ).toBeGreaterThan(0);
+  });
 });

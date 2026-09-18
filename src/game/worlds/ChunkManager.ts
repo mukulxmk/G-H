@@ -84,8 +84,7 @@ export class ChunkManager {
     coordinates: ChunkCoordinates
   ) {
     return (
-      this.getChunk(coordinates)?.isLoaded() ??
-      false
+      this.getChunk(coordinates)?.isLoaded() ?? false
     );
   }
 
@@ -157,4 +156,5 @@ export class ChunkManager {
       this.getChunkKey(coordinates)
     );
   }
+
 }

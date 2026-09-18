@@ -1,18 +1,27 @@
 import type { Renderer } from "@/src/engine/rendering/Renderer";
 import type { World } from "./World";
-import type { WorldDefinition } from "./WorldDefiniton";
 import type { WorldState } from "@/src/game/worlds/WorldState";
 import type { Geometry } from "@/src/game/worlds/geometry/Geometry";
 import type { WorldElement } from "./elements/WorldElement";
 import { testWorldDefinition } from "./TestWorldDefinition";
 import { WorldRuntime } from "./WorldRuntime";
-export class TestWorld implements World {
+import { WorldSpatialIndex } from "./WorldSpatialIndex";
+import { ChunkManager } from "./ChunkManager";
+import { WorldSpatialRuntime } from "./WorldSpatialRuntime";
+import { WorldView } from "./WorldView";
+import type { Bounds } from "./geometry/GeometryBounds";
+import { Camera } from "@/src/engine/camera/Camera";
+import { WorldViewStreamingController } from "./WorldViewStreamingController";
+
+export class TestWorld implements World, WorldView {
   private runtime: WorldRuntime | null = null;
 
-  initialize() {
+  private spatialRuntime:
+    WorldSpatialRuntime | null = null;
+
+ initialize() {
     const initialState: WorldState = {
       worldId: testWorldDefinition.id,
-
       elements: [],
     };
 
@@ -21,16 +30,26 @@ export class TestWorld implements World {
       initialState
     );
 
-    // this.runtime.destroyElement("house-01");
-    console.log(this.runtime.getActiveElements());
-    
+    const spatialIndex =
+      new WorldSpatialIndex(500);
+
+    spatialIndex.addWorldDefinition(
+      testWorldDefinition
+    );
+
+    const chunkManager =
+      new ChunkManager(500);
+
+    this.spatialRuntime =
+      new WorldSpatialRuntime(
+        chunkManager,
+        spatialIndex,
+        this.runtime
+      );
 
     console.log(
       `TestWorld initialized: ${testWorldDefinition.name}`
     );
-    this.runtime.replaceElement("house-01", "house-01-rebuilt")
-    console.log(this.runtime.getActiveElements());
-
   }
 
   update(_deltaTime: number) {
@@ -127,5 +146,69 @@ export class TestWorld implements World {
 
         break;
     }
+  }
+
+  renderViewport(
+    renderer: Renderer,
+    viewport: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }
+  ) {
+    renderer.clear("#4d9bd6");
+
+    if (!this.spatialRuntime) {
+      return;
+    }
+
+    const elements =
+      this.spatialRuntime.getVisibleElements(
+        viewport
+      );
+
+    for (const element of elements) {
+      this.renderElement(
+        renderer,
+        element
+      );
+    }
+  }
+
+  renderVisible(
+    renderer: Renderer,
+    viewport: Bounds
+  ) {
+    renderer.clear("#4d9bd6");
+
+    if (!this.spatialRuntime) {
+      return;
+    }
+
+    const elements =
+      this.spatialRuntime.getVisibleElements(viewport);
+
+    for (const element of elements) {
+      this.renderElement(renderer, element);
+    }
+  }
+
+  createViewController(
+    camera: Camera,
+    streamingRadius: number
+  ) {
+    if (!this.spatialRuntime) {
+      throw new Error(
+        "TestWorld must be initialized before creating its view controller."
+      );
+    }
+
+    return new WorldViewStreamingController(
+      camera,
+      this,
+      this.spatialRuntime,
+      streamingRadius
+    );
   }
 }
