@@ -3,6 +3,10 @@ import type { WorldDefinition } from "./WorldDefiniton";
 export const testWorldDefinition: WorldDefinition = {
   id: "test-world",
   name: "Test World",
+  streaming: {
+    chunkSize: 500,
+    streamingRadius: 1,
+  },
 
   elements: [
     // ─────────────────────────────

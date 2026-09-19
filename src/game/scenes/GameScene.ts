@@ -1,15 +1,17 @@
 import type { Renderer } from "@/src/engine/rendering/Renderer";
 import type { Scene } from "@/src/engine/scenes/Scene";
 import type { World } from "../worlds/World";
-import type { WorldViewStreamingController } from "../worlds/WorldViewStreamingController";
+import type { WorldViewController } from "../worlds/WorldViewController";
+import type {  WorldStreamingPolicy } from "../worlds/WorldStreamingPolicy";
 
 export class GameScene implements Scene {
   private viewController:
-    WorldViewStreamingController | null = null;
+    WorldViewController | null = null;
+  private streamingPolicy: WorldStreamingPolicy | null = null;
 
   constructor(
     private readonly world: World,
-    private readonly createViewController?: () => WorldViewStreamingController
+    private readonly createViewController?: () => WorldViewController
   ) {}
 
   initialize() {
@@ -24,7 +26,7 @@ export class GameScene implements Scene {
   update(deltaTime: number) {
     this.world.update(deltaTime);
 
-    this.viewController?.update();
+    this.streamingPolicy?.update();
   }
 
   render(renderer: Renderer) {
@@ -37,7 +39,8 @@ export class GameScene implements Scene {
   }
 
   destroy() {
+    this.viewController?.destroy();
+    this.streamingPolicy?.reset();
     this.world.destroy();
-    this.viewController = null;
   }
 }

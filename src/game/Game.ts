@@ -19,7 +19,6 @@ export class Game {
       () =>
         world.createViewController(
           this.engine.getCamera(),
-          1
         )
     );
 

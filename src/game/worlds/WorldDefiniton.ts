@@ -1,9 +1,9 @@
 import type { WorldElement } from "./elements/WorldElement";
+import type { WorldStreamingConfig } from "./WorldStreamingConfig";
 
 export interface WorldDefinition {
-  readonly id: string;
-
-  readonly name: string;
-
-  readonly elements: WorldElement[];
+  id: string;
+  name: string;
+  streaming: WorldStreamingConfig;
+  elements: WorldElement[];
 }

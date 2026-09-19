@@ -11,11 +11,16 @@ import {
   WorldRuntime,
 } from "./WorldRuntime";
 import type { WorldDefinition } from "./WorldDefiniton";
+import { testWorldDefinition } from "./TestWorldDefinition"
 
 describe("WorldSpatialRuntime", () => {
   const definition: WorldDefinition = {
     id: "test-world",
     name: "Test World",
+    streaming: {
+      chunkSize: 500,
+      streamingRadius: 1,
+    },
     elements: [
       {
         id: "house-01",
@@ -743,5 +748,72 @@ describe("WorldSpatialRuntime", () => {
     expect(
       visible.length
     ).toBeGreaterThan(0);
+  });
+
+  it("clears spatial runtime data when destroyed", () => {
+    const spatialIndex = new WorldSpatialIndex(500);
+    const chunkManager = new ChunkManager(500);
+
+    const runtime = new WorldRuntime(
+      testWorldDefinition,
+      {
+        worldId: testWorldDefinition.id,
+        elements: [],
+      }
+    );
+
+    const spatialRuntime = new WorldSpatialRuntime(
+      chunkManager,
+      spatialIndex,
+      runtime
+    );
+
+    spatialRuntime.updateAround(
+      { x: 0, y: 0 },
+      1
+    );
+
+    expect(
+      spatialRuntime.getLoadedChunks().length
+    ).toBeGreaterThan(0);
+
+    spatialRuntime.destroy();
+
+    expect(
+      spatialRuntime.getLoadedChunks().length
+    ).toBe(0);
+  });
+
+  it("clears indexed elements when destroyed", () => {
+    const spatialIndex = new WorldSpatialIndex(500);
+    const chunkManager = new ChunkManager(500);
+
+    spatialIndex.addWorldDefinition(
+      testWorldDefinition
+    );
+
+    const runtime = new WorldRuntime(
+      testWorldDefinition,
+      {
+        worldId: testWorldDefinition.id,
+        elements: [],
+      }
+    );
+
+    const spatialRuntime = new WorldSpatialRuntime(
+      chunkManager,
+      spatialIndex,
+      runtime
+    );
+
+    expect(
+      spatialIndex.getElementIds({ x: 0, y: 0 }).length
+    ).toBeGreaterThan(0);
+
+    spatialRuntime.destroy();
+
+    expect(
+      spatialIndex.getElementIds({ x: 0, y: 0 }).length
+    ).toBe(0);
   });
 });

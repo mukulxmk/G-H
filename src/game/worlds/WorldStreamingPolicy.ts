@@ -1,26 +1,15 @@
-import { Camera } from "@/src/engine/camera/Camera";
-import { Renderer } from "@/src/engine/rendering/Renderer";
-
+import type { Camera } from "@/src/engine/camera/Camera";
 import {
-  worldToChunkCoordinates, ChunkCoordinates
+  worldToChunkCoordinates,
+  type ChunkCoordinates,
 } from "./ChunkCoordinates";
+import { WorldSpatialRuntime } from "./WorldSpatialRuntime";
 
-import type { WorldView } from "./WorldView";
-
-import {
-  WorldSpatialRuntime,
-} from "./WorldSpatialRuntime";
-
-import {
-  getCameraWorldViewport,
-} from "./CameraViewportAdapter";
-
-export class WorldViewStreamingController {
+export class WorldStreamingPolicy {
   private lastCenterChunk: ChunkCoordinates | null = null;
 
   constructor(
     private readonly camera: Camera,
-    private readonly world: WorldView,
     private readonly spatialRuntime: WorldSpatialRuntime,
     private readonly streamingRadius: number
   ) {
@@ -35,8 +24,7 @@ export class WorldViewStreamingController {
   }
 
   update() {
-    const centerChunk =
-      this.getCameraChunk();
+    const centerChunk = this.getCameraChunk();
 
     if (
       this.lastCenterChunk &&
@@ -54,26 +42,11 @@ export class WorldViewStreamingController {
     this.lastCenterChunk = centerChunk;
   }
 
-  render(renderer: Renderer) {
-    const viewport =
-      getCameraWorldViewport(
-        this.camera
-      );
-
-    this.world.renderVisible(
-      renderer,
-      viewport
-    );
+  reset() {
+    this.lastCenterChunk = null;
   }
 
-  updateAndRender(
-    renderer: Renderer
-  ) {
-    this.update();
-    this.render(renderer);
-  }
-
-  private getCameraChunk() {
+  private getCameraChunk(): ChunkCoordinates {
     return worldToChunkCoordinates(
       this.camera.getX(),
       this.camera.getY(),

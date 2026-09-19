@@ -4,9 +4,32 @@ export class ChunkRuntime {
   private readonly elementIds =
     new Set<string>();
 
+  private readonly activeElementIds =
+    new Set<string>();
+
   constructor(
     private readonly chunk: Chunk
   ) {}
+
+   activateElement(elementId: string) {
+    if (!this.elementIds.has(elementId)) {
+      return;
+    }
+
+    this.activeElementIds.add(elementId);
+  }
+
+  deactivateElement(elementId: string) {
+    this.activeElementIds.delete(elementId);
+  }
+
+  isElementActive(elementId: string) {
+    return this.activeElementIds.has(elementId);
+  }
+
+  getActiveElementIds() {
+    return [...this.activeElementIds];
+  }
 
   getChunk() {
     return this.chunk;

@@ -18,8 +18,13 @@ import { Bounds } from "./geometry/GeometryBounds";
 import { Camera } from "@/src/engine/camera/Camera";
 import { getCameraWorldViewport } from "./CameraViewportAdapter";
 import { getChunksForBounds } from "./geometry/BoundsToChunks";
+import { ChunkLifecycleBus, type ChunkLifecycleListener } from "./ChunkLifecycleBus";
+import { WorldRuntimeLifecycleBus, type WorldRuntimeLifecycleListener } from "./WorldRuntimeLifecycleBus"
 
 export class WorldSpatialRuntime {
+  private readonly lifecycleBus = new ChunkLifecycleBus();
+  private readonly chunkLifecycleBus = new WorldRuntimeLifecycleBus();
+
   constructor(
     private readonly chunkManager: ChunkManager,
     private readonly spatialIndex: WorldSpatialIndex,
@@ -27,6 +32,25 @@ export class WorldSpatialRuntime {
   ) {}
 
   loadChunk(coordinates: ChunkCoordinates) {
+    this.lifecycleBus.emit({
+      type: "chunk-loading",
+      coordinates,
+    });
+
+    this.chunkManager.loadChunk(coordinates);
+
+    if (!chunkRuntime.isElementActive(elementId)) {
+      chunkRuntime.activateElement(elementId);
+
+      this.lifecycleBus.emit({
+        type: "element-activated",
+        elementId,
+        chunk: coordinates,
+      });
+    }
+
+    // existing logic that populates ChunkRuntime
+
     const chunk =
       this.chunkManager.loadChunk(coordinates);
 
@@ -49,11 +73,40 @@ export class WorldSpatialRuntime {
       runtime.addElement(elementId);
     }
 
+
+    this.lifecycleBus.emit({
+      type: "chunk-loaded",
+      coordinates,
+    });
+
     return chunk;
   }
 
   unloadChunk(coordinates: ChunkCoordinates) {
-    this.chunkManager.unloadChunk(coordinates);
+    this.lifecycleBus.emit({
+      type: "chunk-unloading",
+      coordinates,
+    });
+
+    const activeElementIds =
+      chunkRuntime.getActiveElementIds();
+
+    for (const elementId of activeElementIds) {
+      this.lifecycleBus.emit({
+        type: "element-deactivated",
+        elementId,
+        chunk: coordinates,
+      });
+    }
+
+    // existing unload logic
+      this.chunkManager.unloadChunk(coordinates);
+
+
+    this.lifecycleBus.emit({
+      type: "chunk-unloaded",
+      coordinates,
+    });
   }
 
   updateAround(
@@ -281,5 +334,56 @@ getVisibleElements(
     }
 
     return [...elementIds];
+  }
+
+  onChunkLifecycle(
+    listener: ChunkLifecycleListener
+  ) {
+    return this.lifecycleBus.on(listener);
+  }
+
+  getActiveElementsInChunk(
+  coordinates: ChunkCoordinates
+  ) {
+    const chunkRuntime =
+      this.chunkManager.getChunkRuntime(
+        coordinates
+      );
+
+    if (!chunkRuntime) {
+      return [];
+    }
+
+    const elements = [];
+
+    for (
+      const elementId
+      of chunkRuntime.getActiveElementIds()
+    ) {
+      const element =
+        this.worldRuntime.getElement(
+          elementId
+        );
+
+      if (element) {
+        elements.push(element);
+      }
+    }
+
+    return elements;
+  }
+
+  onRuntimeLifecycle(
+  listener: WorldRuntimeLifecycleListener
+) {
+  return this.chunkLifecycleBus.on(listener);
+}
+
+  destroy() {
+    this.lifecycleBus.clear();
+    this.chunkLifecycleBus.clear();
+
+    this.chunkManager.clear();
+    this.spatialIndex.clear();
   }
 }

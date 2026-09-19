@@ -13,7 +13,7 @@ import {
 } from "./WorldRuntime";
 import {
   WorldViewStreamingController,
-} from "./WorldViewStreamingController";
+} from "./WorldViewController";
 import type { 
     WorldDefinition 
 } from "./WorldDefiniton";
@@ -228,7 +228,7 @@ describe(
         const controller =
           new WorldViewStreamingController(
             camera,
-            new WorldView(),
+            WorldView(),
             spatialRuntime,
             0
           );

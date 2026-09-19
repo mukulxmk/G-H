@@ -11,7 +11,9 @@ import { WorldSpatialRuntime } from "./WorldSpatialRuntime";
 import { WorldView } from "./WorldView";
 import type { Bounds } from "./geometry/GeometryBounds";
 import { Camera } from "@/src/engine/camera/Camera";
-import { WorldViewStreamingController } from "./WorldViewStreamingController";
+import { WorldViewController } from "./WorldViewController";
+import { WorldStreamingPolicy } from "./WorldStreamingPolicy";
+
 
 export class TestWorld implements World, WorldView {
   private runtime: WorldRuntime | null = null;
@@ -38,7 +40,7 @@ export class TestWorld implements World, WorldView {
     );
 
     const chunkManager =
-      new ChunkManager(500);
+      new ChunkManager(testWorldDefinition.streaming.chunkSize);
 
     this.spatialRuntime =
       new WorldSpatialRuntime(
@@ -69,6 +71,9 @@ export class TestWorld implements World, WorldView {
   }
 
   destroy() {
+    this.spatialRuntime?.destroy();
+
+    this.spatialRuntime = null;
     this.runtime = null;
 
     console.log("TestWorld destroyed");
@@ -194,21 +199,30 @@ export class TestWorld implements World, WorldView {
     }
   }
 
-  createViewController(
-    camera: Camera,
-    streamingRadius: number
-  ) {
+  createViewController(camera: Camera) {
     if (!this.spatialRuntime) {
       throw new Error(
         "TestWorld must be initialized before creating its view controller."
       );
     }
 
-    return new WorldViewStreamingController(
+    return new WorldViewController(
       camera,
-      this,
+      this
+    );
+  }
+
+  createStreamingPolicy(camera: Camera) {
+    if (!this.spatialRuntime) {
+      throw new Error(
+        "TestWorld must be initialized before creating its streaming policy."
+      );
+    }
+
+    return new WorldStreamingPolicy(
+      camera,
       this.spatialRuntime,
-      streamingRadius
+      testWorldDefinition.streaming.streamingRadius
     );
   }
 }
